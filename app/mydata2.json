@@ -1,0 +1,12 @@
+{
+  "name" : "David", "value" : 47,
+  "children" : [
+    { "name" : "Chad", "value" : 25},
+    { "name" : "Julia", "value" : 23},
+    { "name" : "Marissa", "value" : 21},
+    { "name" : "Caroline", "value" : 17},
+    { "name" : "Annaliese", "value" : 13},
+    { "name" : "Caleb", "value" : 2},
+    { "name" : "Seth", "value" : 1}
+  ]
+}
