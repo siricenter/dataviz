@@ -1,0 +1,131 @@
+<div class="svgHolder">
+  <p id="bubble-chart"></p>
+</div>
+
+
+<script>
+
+var margin = {
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0
+},
+width = 500 - margin.left - margin.right,
+    height = 500 - margin.top - margin.bottom;
+
+
+var n = 4,
+    m = 1,
+    ax = 150,
+    ay = 250,
+    ix = 350,
+    iy = 250,
+    padding = 6,
+    radius = d3.scale.sqrt().range([0, 7]),
+    color = d3.scale.category10().domain(d3.range(m)),
+    x = d3.scale.ordinal().domain(d3.range(m)).rangePoints([0, width], 1);
+
+
+var xhReq = new XMLHttpRequest();
+xhReq.open("GET", "/mydata.json", false);
+xhReq.send(null);
+var nodes = JSON.parse(xhReq.responseText);
+
+// Force Layout
+var force = d3.layout.force()
+    .nodes(nodes)
+    .size([width, height])
+    .gravity(0)
+    .charge(0)
+    .on("tick", tick)
+    .start();
+
+var svg = d3.select("#bubble-chart")
+    .append("svg")
+    .attr("width", width)
+    .attr("height", height)
+    .append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+var circle = svg.selectAll("circle")
+    .data(nodes)
+    .enter().append("circle")
+    .attr("r", function (d) {
+    return radius(d.value);
+})
+    .style("fill", "steelblue")
+    .style("stroke", "blue")
+    .call(force.drag);
+
+// static label
+svg.append("svg:text")
+    .attr("class", "android")
+    .attr("x", ax - 25)
+    .attr("y", ay - 100)
+    .style("fill", "black")
+    .text("Android")
+    .call(force.drag);
+
+svg.append("svg:text")
+    .attr("class", "iOS")
+    .attr("x", ix - 25)
+    .attr("y", iy - 100)
+    .style("fill", "black")
+    .text("iOS")
+    .call(force.drag);
+
+// Per tick
+function tick(e) {
+    circle.each(gravity(.2 * e.alpha))
+        .each(collide(.5))
+        .attr("cx", function (d) {
+        return d.x;
+    })
+        .attr("cy", function (d) {
+        return d.y;
+    });
+}
+
+// Move nodes toward cluster focus.
+function gravity(alpha) {
+    return function (d) {
+      if (d.type == "ios") {
+        d.y += (iy - d.y) * alpha;
+        d.x += (ix - d.x) * alpha;
+      } else {
+        d.y += (ay - d.y) * alpha;
+        d.x += (ax - d.x) * alpha;
+      }
+    };
+}
+
+// Resolve collisions between nodes.
+function collide(alpha) {
+    var quadtree = d3.geom.quadtree(nodes);
+    return function (d) {
+        var r = radius(d.value) + radius.domain()[1] + padding,
+            nx1 = d.x - r,
+            nx2 = d.x + r,
+            ny1 = d.y - r,
+            ny2 = d.y + r;
+        quadtree.visit(function (quad, x1, y1, x2, y2) {
+            if (quad.point && (quad.point !== d)) {
+                var x = d.x - quad.point.x,
+                    y = d.y - quad.point.y,
+                    l = Math.sqrt(x * x + y * y),
+                    r = radius(d.value) + radius(quad.point.value) + (d.color !== quad.point.color) * padding;
+                if (l < r) {
+                    l = (l - r) / l * alpha;
+                    d.x -= x *= l;
+                    d.y -= y *= l;
+                    quad.point.x += x;
+                    quad.point.y += y;
+                }
+            }
+            return x1 > nx2 || x2 < nx1 || y1 > ny2 || y2 < ny1;
+        });
+    };
+}
+
+</script>

@@ -1,0 +1,96 @@
+<div class="svgHolder">
+  <p id="bar-chart"></p>
+</div>
+
+
+
+  <script type="text/javascript">
+
+    var dataArray = [50, 100, 150, 25, 10, 60, 80];
+
+    // Using a file
+    // d3.json("mydata.json", function(data) {
+    //   var canvas = d3.select("svg")
+    //     .attr("width", 500)
+    //     .attr("height", 500);
+    //
+    //     canvas.selectAll("rect")
+    //           .data(data)
+    //           .enter()
+    //             .append("rect")
+    //               .attr("height", 20)
+    //               .attr("y", function(d, i){ return i * 30})
+    //               .attr("fill", "black")
+    //               .attr("width", 0)
+    //             .transition()
+    //               .delay(function(d, i) { return i * 100 })
+    //               .duration(2000)
+    //               .attr("width", function(d) { return d.age * 10 });
+    //
+    //
+    //     canvas.selectAll("text")
+    //           .data(data)
+    //           .enter()
+    //             .append("text")
+    //             .attr("y", function(d, i){ return i * 30 + 15})
+    //             .attr("fill", "green")
+    //             .text(function(d) { return d.name })
+    // });
+
+
+
+    //
+    d3.csv("SampleData.csv", function(data) {
+      var width = 500;
+      var height = 500;
+
+      var widthScale = d3.scale.linear()
+                      .domain([0, 55000])
+                      .range([10, width]);
+
+      var canvas = d3.select("#bar-chart")
+                    .append("svg")
+                      .attr("width", width)
+                      .attr("height", height)
+
+
+      var axis = d3.svg.axis()
+                .ticks(5)
+                .scale(widthScale);
+
+      var colorScale = d3.scale.linear()
+                      .domain([0, 55000])
+                      .range(["yellow", "green"]);
+
+
+
+      var bars = canvas.selectAll("rect")
+                  .data(data)
+                  .enter()
+                    .append("rect")
+                      .attr("height", 25)
+                      .attr("x", 10)
+                      .attr("fill", "black")
+                      .attr("y", function (d,i) {return i * 30 + 40})
+                      .attr("width", 0)
+                      .on("click", function (d) { alert("This is " + d.institution)})
+                    .transition()
+                      .duration(2000)
+                      .attr("width", function (d) { return widthScale(d.enrollment) })
+
+      canvas.selectAll("text")
+            .data(data)
+            .enter()
+              .append("text")
+              .attr("y", function(d, i){ return i * 30 + 55})
+              .attr("x", 10)
+              .attr("fill", "white")
+              .text(function(d) { return d.institution + ", " + d.enrollment })
+
+      canvas.append("g")
+            .attr("transform", "translate(0, 450)")
+            .call(axis);
+    });
+
+
+  </script>
